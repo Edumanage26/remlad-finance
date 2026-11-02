@@ -1,0 +1,265 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#123b32">
+<title>Remlad Finance</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f2f6f3;color:#17231f;font-family:Arial,sans-serif}
+header{background:#123b32;color:white;padding:22px;border-radius:0 0 22px 22px}
+header h2{margin:0}
+header p{font-size:13px;color:#d5e7df}
+main{max-width:700px;margin:auto;padding:13px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.card{background:white;padding:14px;border-radius:14px;margin-top:12px;border:1px solid #e1e9e4}
+.stat small{color:#68766f}
+.stat strong{display:block;font-size:19px;margin-top:7px}
+nav{display:flex;gap:6px;overflow:auto;margin-top:13px}
+button{border:0;padding:11px;border-radius:9px;font-weight:bold;cursor:pointer}
+nav button{background:#e2ebe5;color:#123b32;white-space:nowrap}
+nav button.active,.primary{background:#123b32;color:white}
+label{display:block;font-size:12px;color:#68766f;margin:10px 0 5px}
+input,select,textarea{width:100%;padding:11px;border:1px solid #d7e1da;border-radius:9px;font-size:14px;background:white}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.primary{width:100%;margin-top:13px}
+.secondary{background:#e5eee9;color:#123b32}
+.danger{background:#fff0ef;color:#b42318}
+.page.hidden{display:none}
+.item{display:flex;justify-content:space-between;gap:8px;padding:12px 0;border-bottom:1px solid #e1e9e4}
+.item small{display:block;color:#68766f;margin-top:4px}
+.amount{font-weight:bold;white-space:nowrap}
+.item button{padding:6px;margin-top:5px;font-size:11px}
+.muted{font-size:12px;color:#68766f}
+.bar{height:8px;background:#e5eee9;border-radius:8px;margin:8px 0}
+.bar span{display:block;height:100%;background:#328568;border-radius:8px}
+@media(min-width:600px){.stats{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<header>
+<h2>Remlad Finance</h2>
+<p>Personal, Business and School Money Manager</p>
+</header>
+<main>
+<div class="stats">
+<div class="card stat"><small>Spent Today</small><strong id="today">₦0</strong></div>
+<div class="card stat"><small>Monthly Expenses</small><strong id="spent">₦0</strong></div>
+<div class="card stat"><small>Monthly Income</small><strong id="income">₦0</strong></div>
+<div class="card stat"><small>Monthly Balance</small><strong id="balance">₦0</strong></div>
+</div>
+
+<nav>
+<button class="active" data-tab="entry">Add Record</button>
+<button data-tab="records">Records</button>
+<button data-tab="budget">Budgets</button>
+<button data-tab="reports">Reports</button>
+<button data-tab="backup">Backup</button>
+</nav>
+
+<section class="card page" id="entry">
+<h3 id="heading">Record Income or Expense</h3>
+<form id="form">
+<input type="hidden" id="editId">
+<div class="row">
+<div><label>Transaction</label>
+<select id="kind"><option value="expense">Expense</option><option value="income">Income</option></select></div>
+<div><label>Area</label>
+<select id="scope"><option value="personal">Personal</option><option value="business">Business</option><option value="school">School</option></select></div>
+</div>
+<div class="row">
+<div><label>Date</label><input type="date" id="date" required></div>
+<div><label>Amount (₦)</label><input type="number" id="amount" min="0.01" step=".01" required></div>
+</div>
+<div class="row">
+<div><label>Category</label>
+<select id="category">
+<option>Food</option><option>Transport</option><option>Fuel</option>
+<option>Groceries</option><option>Household</option>
+<option>School Fees</option><option>Staff Salary</option>
+<option>School Supplies</option><option>Repairs</option>
+<option>Health</option><option>Data and Airtime</option>
+<option>Rent and Bills</option><option>Family</option>
+<option>Giving</option><option>Sales</option><option>Salary</option>
+<option>Business Income</option><option>Other</option>
+</select></div>
+<div><label>Payment Method</label>
+<select id="method"><option>Cash</option><option>Bank Transfer</option><option>POS</option><option>Card</option><option>USSD</option><option>Other</option></select></div>
+</div>
+<label>Description</label>
+<textarea id="note" rows="2" placeholder="What was the money used for?"></textarea>
+<button class="primary" id="save">Save Record</button>
+</form>
+</section>
+
+<section class="card page hidden" id="records">
+<h3>Transaction History</h3>
+<div class="row">
+<div><label>Month</label><input type="month" id="filterMonth"></div>
+<div><label>Area</label><select id="filterScope"><option value="">All</option><option value="personal">Personal</option><option value="business">Business</option><option value="school">School</option></select></div>
+</div>
+<label>Search</label><input id="search" placeholder="Search records">
+<p class="muted">Expense total: <b id="filteredTotal">₦0</b></p>
+<div id="list"></div>
+</section>
+
+<section class="card page hidden" id="budget">
+<h3>Monthly Budget</h3>
+<label>Month</label><input type="month" id="budgetMonth">
+<label>Area</label>
+<select id="budgetScope"><option value="personal">Personal</option><option value="business">Business</option><option value="school">School</option></select>
+<label>Category</label>
+<select id="budgetCategory"><option>Food</option><option>Transport</option><option>Fuel</option><option>Groceries</option><option>Staff Salary</option><option>School Supplies</option><option>Health</option><option>Other</option></select>
+<label>Budget Amount (₦)</label><input type="number" id="budgetAmount" min="1">
+<button class="primary" id="saveBudget">Save Budget</button>
+<div id="budgetList"></div>
+</section>
+
+<section class="card page hidden" id="reports">
+<h3>Monthly Financial Report</h3>
+<label>Select Month</label><input type="month" id="reportMonth">
+<div id="report"></div>
+</section>
+
+<section class="card page hidden" id="backup">
+<h3>Backup and Restore</h3>
+<p class="muted">Save a copy of your records regularly.</p>
+<button class="secondary" id="csv">Export CSV</button>
+<button class="secondary" id="json">Backup JSON</button>
+<button class="secondary" id="restore">Restore Backup</button>
+<input type="file" id="file" accept=".json" hidden>
+<p class="muted">Records are stored on this device. Keep your backup file safe.</p>
+</section>
+</main>
+
+<script>
+const K="remlad_finance_records";
+const B="remlad_finance_budgets";
+let records=JSON.parse(localStorage.getItem(K)||"[]");
+let budgets=JSON.parse(localStorage.getItem(B)||"[]");
+const $=id=>document.getElementById(id);
+const today=()=>new Date().toLocaleDateString("en-CA");
+const month=()=>today().slice(0,7);
+const money=n=>"₦"+Number(n||0).toLocaleString("en-NG",{maximumFractionDigits:2});
+const total=a=>a.reduce((s,x)=>s+Number(x.amount),0);
+const saveData=()=>{
+localStorage.setItem(K,JSON.stringify(records));
+localStorage.setItem(B,JSON.stringify(budgets));
+};
+$("date").value=today();
+$("filterMonth").value=month();
+$("budgetMonth").value=month();
+$("reportMonth").value=month();
+
+function tab(id){
+document.querySelectorAll(".page").forEach(x=>x.classList.toggle("hidden",x.id!==id));
+document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("active",x.dataset.tab===id));
+}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>tab(b.dataset.tab));
+
+function render(){
+let a=records.filter(x=>x.date.startsWith(month()));
+$("today").textContent=money(total(records.filter(x=>x.date===today()&&x.kind==="expense")));
+$("spent").textContent=money(total(a.filter(x=>x.kind==="expense")));
+$("income").textContent=money(total(a.filter(x=>x.kind==="income")));
+$("balance").textContent=money(total(a.filter(x=>x.kind==="income"))-total(a.filter(x=>x.kind==="expense")));
+renderRecords();renderBudgets();renderReport();
+}
+
+function renderRecords(){
+let m=$("filterMonth").value,s=$("filterScope").value,q=$("search").value.toLowerCase();
+let a=records.filter(x=>(!m||x.date.startsWith(m))&&(!s||x.scope===s)&&(`${x.category} ${x.note}`.toLowerCase().includes(q))).sort((x,y)=>y.date.localeCompare(x.date));
+$("filteredTotal").textContent=money(total(a.filter(x=>x.kind==="expense")));
+let host=$("list");host.innerHTML="";
+if(!a.length){host.textContent="No records found.";return;}
+a.forEach(x=>{
+let d=document.createElement("div");d.className="item";
+let l=document.createElement("div"),r=document.createElement("div");
+let t=document.createElement("b");t.textContent=x.category+" · "+x.scope;
+let sm=document.createElement("small");sm.textContent=x.date+" · "+x.kind+" · "+(x.note||x.method);
+l.append(t,sm);
+let am=document.createElement("div");am.className="amount";am.textContent=(x.kind==="income"?"+":"−")+money(x.amount);
+let ed=document.createElement("button");ed.className="secondary";ed.textContent="Edit";ed.onclick=()=>edit(x.id);
+let de=document.createElement("button");de.className="danger";de.textContent="Delete";
+de.onclick=()=>{if(confirm("Delete this record?")){records=records.filter(z=>z.id!==x.id);saveData();render();}};
+r.append(am,ed,de);d.append(l,r);host.append(d);
+});
+}
+
+function edit(id){
+let x=records.find(z=>z.id===id);
+$("editId").value=x.id;$("kind").value=x.kind;$("scope").value=x.scope;
+$("date").value=x.date;$("amount").value=x.amount;$("category").value=x.category;
+$("method").value=x.method;$("note").value=x.note;
+$("heading").textContent="Edit Record";$("save").textContent="Update Record";tab("entry");
+}
+
+$("form").onsubmit=e=>{
+e.preventDefault();
+let id=$("editId").value;
+let x={id:id||String(Date.now()),kind:$("kind").value,scope:$("scope").value,date:$("date").value,amount:Number($("amount").value),category:$("category").value,method:$("method").value,note:$("note").value,created:Date.now()};
+if(id)records=records.map(z=>z.id===id?x:z);else records.push(x);
+saveData();$("form").reset();$("date").value=today();$("editId").value="";
+$("heading").textContent="Record Income or Expense";$("save").textContent="Save Record";render();
+};
+
+function renderBudgets(){
+let m=$("budgetMonth").value,s=$("budgetScope").value;
+let a=budgets.filter(x=>x.month===m&&x.scope===s),host=$("budgetList");host.innerHTML="";
+a.forEach(b=>{
+let spent=total(records.filter(x=>x.kind==="expense"&&x.date.startsWith(m)&&x.scope===s&&x.category===b.category));
+let pct=Math.min(100,spent/b.amount*100);
+let d=document.createElement("div");
+d.innerHTML=`<p><b>${b.category}</b> ${money(spent)} / ${money(b.amount)}</p><div class="bar"><span style="width:${pct}%"></span></div><small>${spent>b.amount?"Over budget":"Remaining "+money(b.amount-spent)}</small>`;
+host.append(d);
+});
+}
+$("saveBudget").onclick=()=>{
+let b={month:$("budgetMonth").value,scope:$("budgetScope").value,category:$("budgetCategory").value,amount:Number($("budgetAmount").value)};
+if(!b.month||!b.amount)return alert("Enter a budget amount.");
+let i=budgets.findIndex(x=>x.month===b.month&&x.scope===b.scope&&x.category===b.category);
+if(i>=0)budgets[i]=b;else budgets.push(b);
+saveData();renderBudgets();$("budgetAmount").value="";
+};
+
+function renderReport(){
+let m=$("reportMonth").value,a=records.filter(x=>x.date.startsWith(m)),out="";
+["personal","business","school"].forEach(s=>{
+let ex=total(a.filter(x=>x.scope===s&&x.kind==="expense"));
+let inc=total(a.filter(x=>x.scope===s&&x.kind==="income"));
+out+=`<div class="item"><b>${s}</b><span>${money(inc-ex)}<small>Income ${money(inc)} · Expense ${money(ex)}</small></span></div>`;
+});
+let cats={};a.filter(x=>x.kind==="expense").forEach(x=>cats[x.category]=(cats[x.category]||0)+x.amount);
+out+="<h4>Spending by Category</h4>";
+Object.entries(cats).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>out+=`<div class="item">${k}<b>${money(v)}</b></div>`);
+$("report").innerHTML=out;
+}
+
+["filterMonth","filterScope","search"].forEach(id=>$(id).addEventListener("input",renderRecords));
+["budgetMonth","budgetScope"].forEach(id=>$(id).addEventListener("input",renderBudgets));
+$("reportMonth").oninput=renderReport;
+
+function download(name,data,type){
+let u=URL.createObjectURL(new Blob([data],{type}));
+let a=document.createElement("a");a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);
+}
+$("csv").onclick=()=>{
+let rows=[["Date","Type","Area","Amount","Category","Method","Description"],...records.map(x=>[x.date,x.kind,x.scope,x.amount,x.category,x.method,x.note])];
+download("remlad-finance.csv","\ufeff"+rows.map(r=>r.map(v=>'"'+String(v??"").replaceAll('"','""')+'"').join(",")).join("\n"),"text/csv");
+};
+$("json").onclick=()=>download("remlad-finance-backup.json",JSON.stringify({records,budgets},null,2),"application/json");
+$("restore").onclick=()=>$("file").click();
+$("file").onchange=async e=>{
+try{
+let d=JSON.parse(await e.target.files[0].text());
+if(!Array.isArray(d.records)||!Array.isArray(d.budgets))throw 0;
+if(confirm("Replace existing records with this backup?")){records=d.records;budgets=d.budgets;saveData();render();alert("Backup restored.");}
+}catch{alert("Invalid backup file.");}
+e.target.value="";
+};
+render();
+</script>
+</body>
+</html>
